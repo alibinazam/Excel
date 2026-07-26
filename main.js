@@ -335,7 +335,16 @@ function renderHistory() {
   history.forEach(item => {
     const div = document.createElement('div');
     div.className = 'history-item';
-    div.innerHTML = `<div class="history-q">${item.question}</div><div class="history-f">${item.formula}</div>`;
+    const qDiv = document.createElement('div');
+    qDiv.className = 'history-q';
+    qDiv.textContent = item.question;
+
+    const fDiv = document.createElement('div');
+    fDiv.className = 'history-f';
+    fDiv.textContent = item.formula;
+
+    div.appendChild(qDiv);
+    div.appendChild(fDiv);
     div.addEventListener('click', () => {
       questionInput.value = item.question;
       questionInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
