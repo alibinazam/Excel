@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Excel Wizord</title>
+
+  <!-- Template Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- jSuites (must load before Jspreadsheet) & Jspreadsheet CE -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsuites@4/dist/jsuites.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsuites@4/dist/jsuites.css" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/jspreadsheet-ce@4/dist/index.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jspreadsheet-ce@4/dist/jspreadsheet.css" type="text/css" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="/templatemo-621-luminary-style.css">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<!-- Background Elements -->
+<svg class="grain" width="100%" height="100%">
+  <filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="5" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter>
+  <rect width="100%" height="100%" filter="url(#n)"/>
+</svg>
+<div class="atmosphere"></div>
+
+<!-- Nav -->
+<nav class="top-nav" id="topNav">
+  <a href="#" class="nav-brand">Excel <span>Wizord</span></a>
+  <ul class="nav-links">
+    <li><a href="#app">Tool</a></li>
+    <li><a href="#history-card">History</a></li>
+  </ul>
+  <button id="apiKeyBtn" class="nav-cta" style="border:none; cursor:pointer; font-family:var(--font-display); background:transparent; border: 1px solid var(--excel); color: var(--excel); margin-right: 12px; border-radius: 4px; padding: 8px 16px;">Set API Key</button>
+  <button id="cheatSheetBtn" class="nav-cta" style="border:none; cursor:pointer; font-family:var(--font-display);">Excel Shortcuts</button>
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+    <span class="toggle-bar"></span><span class="toggle-bar"></span>
+  </button>
+</nav>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu" id="mobileMenu">
+  <div class="mobile-menu-inner">
+    <div class="mobile-menu-links">
+      <a href="#app" class="mobile-menu-link" data-index="01">Tool</a>
+      <a href="#history-card" class="mobile-menu-link" data-index="02">History</a>
+    </div>
+  </div>
+</div>
+
+<main class="main">
+
+  <!-- ═══ HERO ═══ -->
+  <section class="hero" id="hero">
+    <div class="hero-grid"></div>
+    <div class="hero-badge">
+      <div class="hero-badge-dot"></div>
+      <span>Powered by Hackers Lab</span>
+    </div>
+    <h1 style="font-family: 'Playfair Display', serif; font-size: 52px; margin-bottom: 24px; color: #fff;">Describe your task<br><em style="color: var(--excel); font-style: italic;">in plain English</em></h1>
+    <p class="hero-sub" style="font-size: 18px; color: #A3A3B0;">
+      Get the exact formula, the method behind it, and a worked example — or let AI apply the changes directly to your live data.
+    </p>
+  </section>
+
+  <!-- ═══ APP UI ═══ -->
+  <section class="section" id="app" style="padding-top: 20px; z-index: 10; position: relative;">
+    <div class="wrap" style="text-align: left; max-width: 960px; margin: 0 auto; width: 100%;">
+      
+      <!-- File Upload Card -->
+      <div class="card" id="file-card">
+        <h2>Data File (Optional)</h2>
+        <p class="hint" style="margin-top:-8px; margin-bottom:14px;">Upload an Excel or CSV file to apply changes directly
+          to the data instead of just getting a formula.</p>
+        <input type="file" id="fileInput" accept=".xlsx, .xls, .csv" style="font-size:13px; color: #fff;">
+        <div id="dataPreview" style="display:none; margin-top:14px;">
+          <label>Live Preview</label>
+          <div id="gridWrapper"
+            style="border:1px solid var(--line); border-radius:7px; background:var(--mist); margin-bottom: 12px; overflow: auto; max-height: 350px; position: relative; padding: 2px;">
+            <div id="spreadsheetWindow" style="background: #ffffff; color: #222222; border-radius: 6px; overflow: auto;"></div>
+            <div id="expandOverlay"
+              style="position: sticky; bottom: 0; left: 0; width: 100%; height: 60px; background: linear-gradient(transparent, #050810 80%); display: flex; justify-content: center; align-items: flex-end; pointer-events: none; padding-bottom: 8px;">
+              <button id="expandBtn" class="secondary"
+                style="pointer-events: auto; background: var(--paper); box-shadow: 0 2px 5px rgba(0,0,0,0.5); border: 1px solid var(--line);">Expand
+                Rows</button>
+            </div>
+          </div>
+          <button class="primary" id="downloadBtn" style="display:none; background: var(--excel); color: #fff;">Download
+            Modified File</button>
+        </div>
+      </div>
+
+      <!-- Task Card -->
+      <div class="card">
+        <h2>Your task</h2>
+        <div class="field">
+          <label for="question">What do you want Excel to do?</label>
+          <textarea id="question"
+            placeholder="e.g. I want to look up a price from another sheet based on a product code, and show blank instead of an error if it's not found"></textarea>
+        </div>
+        <div class="field mode-toggle" id="modeToggle" style="display:none; margin-top: 14px;">
+          <label>Action:</label>
+          <div style="display: flex; gap: 16px; margin-top: 6px;">
+            <label style="font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 6px; color: #fff;"><input
+                type="radio" name="mode" value="modify" checked> Apply changes directly to live data</label>
+            <label style="font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 6px; color: #fff;"><input
+                type="radio" name="mode" value="formula"> Generate formula instructions</label>
+          </div>
+        </div>
+        <div class="ask-row">
+          <button class="primary" id="askBtn">Get formula</button>
+        </div>
+        <div class="status-line" id="statusLine"></div>
+        <div class="examples">
+          <div class="chip" data-q="Sum the values in column C where column A is 'Sales'">Sum values if condition met</div>
+          <div class="chip" data-q="Find the average of column B but ignore zeros">Average ignoring zeros</div>
+          <div class="chip" data-q="Extract the text before the first space in cell A1">Extract first name</div>
+        </div>
+      </div>
+
+      <!-- Result Area -->
+      <div id="result-area" style="display:none;">
+        <div class="fx-bar">
+          <div class="fx-label">fx</div>
+          <div class="fx-formula" id="formulaText"></div>
+          <button class="copy-btn" id="copyBtn">Copy</button>
+        </div>
+        <div class="explain-box">
+          <p id="explanationText"></p>
+          <ol class="steps" id="stepsList"></ol>
+          <div class="example-block" id="exampleBlock"></div>
+          <div class="note-block" id="noteBlock"></div>
+        </div>
+      </div>
+
+      <!-- History Card -->
+      <div class="card" id="history-card" style="margin-top: 20px;">
+        <h2>Recent questions</h2>
+        <div id="historyList"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ FOOTER ═══ -->
+  <section class="footer-cta" id="cta">
+    <div class="footer-bar reveal reveal-d4" style="margin-top: 40px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+      <div class="footer-brand" style="color:#fff;">Hackers Lab &mdash; Excel Wizord</div>
+      <div class="footer-links">
+        <span class="footer-credit">Answers generated by AI — verify before relying on a formula.</span>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Cheat Sheet Modal (Hidden by default) -->
+<div id="cheatSheetModal" class="modal-overlay" style="display:none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Excel Pro Shortcuts</h2>
+      <button id="closeCheatSheet" class="close-btn">&times;</button>
+    </div>
+    <div class="modal-body">
+      
+        <h3>Cell Size, Row & Column Adjustment Shortcuts</h3>
+        <table>
+          <tr>
+            <th>Shortcut</th>
+            <th>Action</th>
+            <th>Explanation</th>
+          </tr>
+          <tr>
+            <td><strong>Alt + H + O + I</strong></td>
+            <td>AutoFit Column Width</td>
+            <td>Automatically adjusts column width to fit the longest text/data.</td>
+          </tr>
+          <tr>
+            <td><strong>Alt + H + O + A</strong></td>
+            <td>AutoFit Row Height</td>
+            <td>Automatically adjusts row height according to cell content.</td>
+          </tr>
+          <tr>
+            <td><strong>Alt + H + O + W</strong></td>
+            <td>Set Column Width</td>
+            <td>Opens option to manually enter column width.</td>
+          </tr>
+          <tr>
+            <td><strong>Alt + H + O + H</strong></td>
+            <td>Set Row Height</td>
+            <td>Opens option to manually enter row height.</td>
+          </tr>
+          <tr>
+            <td><strong>Double-click Column Border</strong></td>
+            <td>AutoFit Column</td>
+            <td>Quickly adjusts column size to fit content.</td>
+          </tr>
+          <tr>
+            <td><strong>Double-click Row Border</strong></td>
+            <td>AutoFit Row</td>
+            <td>Quickly adjusts row height.</td>
+          </tr>
+          <tr>
+            <td><strong>Ctrl + Space &rarr; Alt + H + O + W</strong></td>
+            <td>Change Entire Column Width</td>
+            <td>Selects full column and changes its width.</td>
+          </tr>
+          <tr>
+            <td><strong>Shift + Space &rarr; Alt + H + O + H</strong></td>
+            <td>Change Entire Row Height</td>
+            <td>Selects full row and changes its height.</td>
+          </tr>
+          <tr>
+            <td><strong>Ctrl + A &rarr; Alt + H + O + I</strong></td>
+            <td>AutoFit Entire Sheet Columns</td>
+            <td>Fits all columns in the worksheet automatically.</td>
+          </tr>
+          <tr>
+            <td><strong>Ctrl + A &rarr; Alt + H + O + A</strong></td>
+            <td>AutoFit Entire Sheet Rows</td>
+            <td>Fits all rows in the worksheet automatically.</td>
+          </tr>
+        </table>
+
+        <h3>Alignment & Spacing Shortcuts</h3>
+        <table>
+          <tr>
+            <th>Shortcut</th>
+            <th>Action</th>
+            <th>Explanation</th>
+          </tr>
+          <tr>
+            <td><strong>Alt + H + A + C</strong></td>
+            <td>Center Align</td>
+            <td>Places text in the center of cells.</td>
+          </tr>
+          <tr>
+            <td><strong>Alt + H + A + L</strong></td>
+            <td>Align Left</td>
+            <td>Moves content to the left side.</td>
+          </tr>
+          <tr>
+            <td><strong>Alt + H + A + R</strong></td>
+            <td>Align Right</td>
+            <td>Moves content to the right side.</td>
+          </tr>
+          <tr>
+            <td><strong>Alt + H + A + T</strong></td>
+            <td>Align Top</td>
+            <td>Places content at the top of the cell.</td>
+          </tr>
+          <tr>
+            <td><strong>Alt + H + A + M</strong></td>
+            <td>Align Middle</td>
+            <td>Centers content vertically.</td>
+          </tr>
+          <tr>
+            <td><strong>Alt + H + A + B</strong></td>
+            <td>Align Bottom</td>
+            <td>Places content at the bottom of the cell.</td>
+          </tr>
+          <tr>
+            <td><strong>Alt + H + W</strong></td>
+            <td>Wrap Text</td>
+            <td>Makes long text appear on multiple lines inside a cell.</td>
+          </tr>
+          <tr>
+            <td><strong>Alt + H + M + M</strong></td>
+            <td>Merge & Center</td>
+            <td>Combines selected cells and centers text.</td>
+          </tr>
+          <tr>
+            <td><strong>Alt + H + M + C</strong></td>
+            <td>Merge Cells</td>
+            <td>Joins selected cells without centering.</td>
+          </tr>
+          <tr>
+            <td><strong>Alt + H + M + U</strong></td>
+            <td>Unmerge Cells</td>
+            <td>Separates merged cells.</td>
+          </tr>
+        </table>
+
+        <h3>Font Size & Cell Formatting Shortcuts</h3>
+        <table>
+          <tr>
+            <th>Shortcut</th>
+            <th>Action</th>
+            <th>Explanation</th>
+          </tr>
+          <tr>
+            <td><strong>Ctrl + Shift + &gt;</strong></td>
+            <td>Increase Font Size</td>
+            <td>Makes text larger.</td>
+          </tr>
+          <tr>
+            <td><strong>Ctrl + Shift + &lt;</strong></td>
+            <td>Decrease Font Size</td>
+            <td>Makes text smaller.</td>
+          </tr>
+          <tr>
+            <td><strong>Ctrl + Shift + F</strong></td>
+            <td>Font Settings</td>
+            <td>Opens font formatting menu.</td>
+          </tr>
+          <tr>
+            <td><strong>Ctrl + 1</strong></td>
+            <td>Format Cells</td>
+            <td>Opens complete formatting options.</td>
+          </tr>
+          <tr>
+            <td><strong>Alt + H + F + S</strong></td>
+            <td>Font Size Box</td>
+            <td>Directly changes font size.</td>
+          </tr>
+          <tr>
+            <td><strong>Alt + H + F + F</strong></td>
+            <td>Font Selection</td>
+            <td>Changes font type.</td>
+          </tr>
+        </table>
+
+        <h3>Borders & Cell Appearance</h3>
+        <table>
+          <tr>
+            <th>Shortcut</th>
+            <th>Action</th>
+            <th>Explanation</th>
+          </tr>
+          <tr>
+            <td><strong>Ctrl + Shift + &amp;</strong></td>
+            <td>Apply Border</td>
+            <td>Adds border around selected cells.</td>
+          </tr>
+          <tr>
+            <td><strong>Ctrl + Shift + _</strong></td>
+            <td>Remove Border</td>
+            <td>Removes cell borders.</td>
+          </tr>
+          <tr>
+            <td><strong>Alt + H + B</strong></td>
+            <td>Border Menu</td>
+            <td>Opens all border options.</td>
+          </tr>
+          <tr>
+            <td><strong>Alt + H + H</strong></td>
+            <td>Fill Color</td>
+            <td>Opens cell background color menu.</td>
+          </tr>
+          <tr>
+            <td><strong>Alt + H + FC</strong></td>
+            <td>Font Color</td>
+            <td>Changes text color.</td>
+          </tr>
+        </table>
+
+        <h3>Navigation & Selection for Large Sheets</h3>
+        <table>
+          <tr>
+            <th>Shortcut</th>
+            <th>Action</th>
+            <th>Explanation</th>
+          </tr>
+          <tr>
+            <td><strong>Ctrl + Arrow Key</strong></td>
+            <td>Jump to Data Edge</td>
+            <td>Moves quickly through large datasets.</td>
+          </tr>
+          <tr>
+            <td><strong>Ctrl + Shift + Arrow Key</strong></td>
+            <td>Select Data Range</td>
+            <td>Selects all connected data.</td>
+          </tr>
+          <tr>
+            <td><strong>Shift + Mouse Click</strong></td>
+            <td>Select Range</td>
+            <td>Selects a continuous range.</td>
+          </tr>
+          <tr>
+            <td><strong>Ctrl + Click</strong></td>
+            <td>Multiple Selection</td>
+            <td>Selects non-adjacent cells.</td>
+          </tr>
+          <tr>
+            <td><strong>Ctrl + Shift + Space</strong></td>
+            <td>Select Current Table</td>
+            <td>Selects the whole data table.</td>
+          </tr>
+        </table>
+
+        <h3>Professional Data Cleaning Shortcuts</h3>
+        <table>
+          <tr>
+            <th>Shortcut</th>
+            <th>Action</th>
+            <th>Explanation</th>
+          </tr>
+          <tr>
+            <td><strong>Ctrl + E</strong></td>
+            <td>Flash Fill</td>
+            <td>Automatically detects patterns and fills data.</td>
+          </tr>
+          <tr>
+            <td><strong>Ctrl + Shift + L</strong></td>
+            <td>Add Filter</td>
+            <td>Creates filters on headers.</td>
+          </tr>
+          <tr>
+            <td><strong>Alt + &darr;</strong></td>
+            <td>Open Dropdown</td>
+            <td>Opens filter or list dropdown.</td>
+          </tr>
+          <tr>
+            <td><strong>Ctrl + T</strong></td>
+            <td>Convert to Table</td>
+            <td>Creates a formatted Excel table.</td>
+          </tr>
+          <tr>
+            <td><strong>Ctrl + K</strong></td>
+            <td>Insert Hyperlink</td>
+            <td>Adds a clickable link.</td>
+          </tr>
+          <tr>
+            <td><strong>Ctrl + Shift + V</strong></td>
+            <td>Paste Special Menu</td>
+            <td>Controls exactly how data is pasted.</td>
+          </tr>
+        </table>
+
+        <h3>Useful Mouse + Keyboard Tricks</h3>
+        <table>
+          <tr>
+            <th>Action</th>
+            <th>Shortcut</th>
+          </tr>
+          <tr>
+            <td>Copy formula down quickly</td>
+            <td>Drag fill handle or double-click fill handle</td>
+          </tr>
+          <tr>
+            <td>Resize multiple columns together</td>
+            <td>Select columns &rarr; drag one border</td>
+          </tr>
+          <tr>
+            <td>Resize all columns equally</td>
+            <td>Select columns &rarr; Right click &rarr; Column Width</td>
+          </tr>
+          <tr>
+            <td>Resize all rows equally</td>
+            <td>Select rows &rarr; Right click &rarr; Row Height</td>
+          </tr>
+          <tr>
+            <td>Freeze top row</td>
+            <td><strong>Alt + W + F + R</strong></td>
+          </tr>
+          <tr>
+            <td>Freeze first column</td>
+            <td><strong>Alt + W + F + C</strong></td>
+          </tr>
+          <tr>
+            <td>Remove all formatting</td>
+            <td><strong>Alt + H + E + F</strong></td>
+          </tr>
+          <tr>
+            <td>Copy only values</td>
+            <td><strong>Ctrl + C &rarr; Ctrl + Shift + V &rarr; V</strong></td>
+          </tr>
+          <tr>
+            <td>Copy only formatting</td>
+            <td><strong>Ctrl + C &rarr; Ctrl + Shift + V &rarr; R</strong></td>
+          </tr>
+        </table>
+
+        <p style="font-size: 13.5px; color: var(--ink-soft); margin-top: 24px; line-height: 1.6;"><strong>Excel Pro Tip:
+            Fast Formatting Workflow</strong><br>
+          Make a professional report table:<br>
+          1. Select entire data (<strong>Ctrl + A</strong>)<br>
+          2. Auto-size everything (<strong>Alt + H + O + I</strong>)<br>
+          3. Turn into table (<strong>Ctrl + T</strong>)<br>
+          4. Make headers bold (<strong>Ctrl + B</strong>)<br>
+          5. Center numbers (<strong>Alt + H + A + C</strong>)<br>
+          6. Wrap long text (<strong>Alt + H + W</strong>)<br>
+          7. Adjust final size manually (<strong>Alt + H + O + W</strong>)
+        </p>
+      
+    </div>
+  </div>
+</div>
+
+<!-- API Key Modal -->
+<div id="apiKeyModal" class="modal-overlay" style="display:none;">
+  <div class="modal-content" style="max-width: 500px;">
+    <div class="modal-header">
+      <h2>API Settings</h2>
+      <button id="closeApiKeyModal" class="close-btn">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="key-row" style="flex-direction: column; align-items: stretch;">
+        <div class="field">
+          <label for="apiKey">Gemini API key</label>
+          <input type="password" id="apiKey" placeholder="Paste your Gemini API key here" autocomplete="off">
+          <p class="hint">Stored securely in your browser's local storage.</p>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
+          <div class="key-status" id="keyStatus"><span class="dot"></span>Not set</div>
+          <button id="saveApiKeyBtn" class="primary" style="background: var(--excel); color: #fff; padding: 8px 20px; font-size: 14px; border: none; border-radius: 4px; cursor: pointer; font-family: var(--font-display); font-weight: 500;">Save API Key</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/templatemo-621-luminary-script.js"></script>
+<script type="module" src="/main.js"></script>
+</body>
+</html>
